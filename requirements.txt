@@ -1,6 +1,7 @@
 # Reproducible reference environment for Python 3.11.
 # Versions are intentionally conservative rather than "latest everything" so
 # the older PyTDC loader and chemistry/ML stack remain easy to reproduce.
+setuptools>=68,<81
 numpy==1.26.4
 pandas==2.3.3
 scikit-learn==1.7.2
