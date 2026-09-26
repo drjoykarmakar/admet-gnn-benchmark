@@ -1,0 +1,52 @@
+seed: 42
+data:
+  cleaned_csv: data/processed/solubility_aqsoldb_clean.csv
+  split_dir: data/processed/splits
+  target_column: target
+  smiles_column: smiles
+  features_npz: data/processed/solubility_aqsoldb_features.npz
+split:
+  train_fraction: 0.8
+  val_fraction: 0.1
+  test_fraction: 0.1
+features:
+  morgan_radius: 2
+  fingerprint_bits: 2048
+  descriptors:
+  - MolWt
+  - TPSA
+  - NumHBD
+  - NumHBA
+  - MolLogP
+  - NumRotatableBonds
+gnn:
+  hidden_size: 128
+  num_layers: 3
+  batch_size: 64
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 1.0e-05
+  early_stopping_patience: 15
+  dropout: 0.1
+  early_stopping_min_delta: 1.0e-05
+  num_workers: 0
+  device: cpu
+  demo_epochs: 5
+baseline:
+  n_estimators: 300
+  max_depth: null
+  max_features_candidates:
+  - sqrt
+  - 0.25
+  min_samples_leaf_candidates:
+  - 1
+  - 2
+  n_jobs: -1
+results:
+  tables_dir: results/tables
+  figures_dir: results/figures
+  predictions_dir: results/predictions
+  report_path: results/report.md
+report:
+  failure_cases_per_model_split: 5
+  failure_grid_size: 6

@@ -1,0 +1,17 @@
+# Reproducible reference environment for Python 3.11.
+# Versions are intentionally conservative rather than "latest everything" so
+# the older PyTDC loader and chemistry/ML stack remain easy to reproduce.
+numpy==1.26.4
+pandas==2.3.3
+scikit-learn==1.7.2
+rdkit==2023.9.5
+PyTDC==1.1.15
+torch==2.9.1
+matplotlib==3.10.8
+PyYAML==6.0.3
+pytest==9.0.2
+
+# PyTorch Geometric is intentionally optional. The benchmark GNN uses a small
+# pure-PyTorch message-passing implementation so installation does not depend on
+# platform-specific PyG extension wheels.
+# torch-geometric==2.7.0

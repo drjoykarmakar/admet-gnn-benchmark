@@ -1,0 +1,58 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging/build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDE / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw and generated molecular data
+# Keep directory/readme placeholders, not full datasets.
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/README.md
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/README.md
+
+# Model artifacts and checkpoints
+checkpoints/
+models/
+artifacts/
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+
+# Experiment trackers / local logs
+wandb/
+mlruns/
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.swp
