@@ -1,5 +1,7 @@
 # ADMET GNN Benchmark
 
+[![CI](https://github.com/drjoykarmakar/admet-gnn-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/drjoykarmakar/admet-gnn-benchmark/actions/workflows/ci.yml)
+
 > This repository is a reproducible ADMET property-prediction benchmark. It compares fingerprint baselines and a small PyTorch GNN under random and scaffold splits, with emphasis on data cleaning and honest evaluation rather than architectural novelty.
 
 This project predicts aqueous solubility from molecular SMILES using the public TDC `Solubility_AqSolDB` regression dataset.
