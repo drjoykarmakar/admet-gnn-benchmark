@@ -37,7 +37,7 @@ The project deliberately keeps the modeling simple so that data quality, split c
 - Dataset license: CC BY 4.0
 - Date source pages accessed: 2026-09-26
 - TDC-reported dataset size before this repository's cleaning: 9,982 molecules
-- Size after local cleaning: **TBD**
+- Size after local cleaning: **9,220 molecules**
 
 AqSolDB is already a curated dataset, but this repository still applies a documented local standardization pipeline. That is intentional: benchmark inputs should be defined by code in the repository rather than assumed to match an upstream curation state forever.
 
@@ -54,20 +54,20 @@ AqSolDB is already a curated dataset, but this repository still applies a docume
 7. Collapse duplicate standardized structures.
 8. Treat duplicate labels within 0.01 LogS as agreement, matching the tolerance used in the original AqSolDB curation; by default, drop a standardized structure entirely when labels disagree beyond that threshold. Optional `mean` and `median` policies are available for sensitivity analysis.
 
-The cleaning report is written as JSON and records how many rows are removed or collapsed at each step. The final README will replace the `TBD` values below with the observed counts from the pinned pipeline.
+The cleaning report is written as JSON and records how many rows are removed or collapsed at each step.
 
 | Cleaning stage | Count |
-| --- | ---: |
-| Rows loaded | TBD |
-| Missing/invalid target | TBD |
-| Missing/blank SMILES | TBD |
-| RDKit parse/sanitization failures | TBD |
-| Standardization failures | TBD |
-| Exact input-SMILES duplicate rows | TBD |
-| Standardized duplicate rows collapsed | TBD |
-| Conflicting standardized-label groups | TBD |
-| Rows dropped because of label conflict | TBD |
-| Final molecules | **TBD** |
+|---|---:|
+| Rows loaded | 9,982 |
+| Missing/invalid target | 0 |
+| Missing/blank SMILES | 0 |
+| RDKit parse/sanitization failures | 0 |
+| Standardization failures | 0 |
+| Exact input-SMILES duplicate rows | 0 |
+| Standardized duplicate rows collapsed | 3 |
+| Conflicting standardized-label groups | 237 |
+| Rows dropped because of label conflict | 759 |
+| Final molecules | 9,220 |
 
 ## Methods
 
@@ -100,7 +100,7 @@ The deep model is intentionally small and readable:
 
 `src/features.py` also computes bond type, conjugation, and ring-membership features. The first GNN intentionally does not consume those edge attributes; it uses atom features plus bond connectivity only. This keeps the architecture easy to audit and leaves edge-aware message passing as a clear future experiment rather than quietly increasing model complexity.
 
-PyTorch Geometric was left optional because it was not available in the reference build environment and is unnecessary for a model of this size. The reference config defaults to CPU for the most portable deterministic run; `--device cuda` or `--device mps` can be used explicitly when available. A short CPU smoke run is available with `--demo`.
+PyTorch Geometric was left optional because it is unnecessary for a model of this size. The reference config defaults to CPU for the most portable deterministic run; `--device cuda` or `--device mps` can be used explicitly when available. A short CPU smoke run is available with `--demo`.
 
 ## Splits and leakage
 
@@ -111,7 +111,13 @@ Each model is trained and evaluated twice:
 
 A random split is useful, but for molecular data it can reward interpolation across closely related analogs. If the same scaffold family is represented in both train and test data, a model can obtain an attractive score without demonstrating strong generalization to new chemical series. The scaffold split is therefore expected to be harder and is treated as the more conservative view of out-of-scaffold performance.
 
-Scaffold groups are indivisible, so realized train/validation/test fractions may differ from the requested 80/10/10 proportions. The split audit records both requested and realized sizes. `src.splits` also asserts zero pairwise scaffold overlap for the scaffold split. Both random and scaffold assignments are saved explicitly rather than regenerated implicitly during training.
+The full run produced:
+
+- Random split: **7,376 / 922 / 922** train/validation/test molecules
+- Scaffold split: **7,376 / 922 / 922** train/validation/test molecules
+- Pairwise scaffold overlap in the scaffold split: **0**
+
+Scaffold groups are indivisible, so realized train/validation/test fractions can in general differ from the requested 80/10/10 proportions. The split audit records both requested and realized sizes. `src.splits` also asserts zero pairwise scaffold overlap for the scaffold split. Both random and scaffold assignments are saved explicitly rather than regenerated implicitly during training.
 
 ## Metrics
 
@@ -125,26 +131,28 @@ No result is summarized by R2 alone.
 
 ## Results
 
-All values below remain `TBD` until the full 9,982-row source dataset is run through this exact pipeline. Smoke-test or subset results must not be copied into this table.
+The full benchmark was run on 9,220 cleaned, standardized molecules using the fixed random seed and configuration described above.
 
 | Model | Representation | Random RMSE | Random MAE | Random R2 | Scaffold RMSE | Scaffold MAE | Scaffold R2 |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Random Forest | Morgan + RDKit descriptors | TBD | TBD | TBD | TBD | TBD | TBD |
-| Small GNN | Molecular graph | TBD | TBD | TBD | TBD | TBD | TBD |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Random Forest | Morgan + RDKit descriptors | 0.984 | 0.664 | 0.803 | 1.264 | 0.900 | 0.657 |
+| Small GNN | Molecular graph | 1.110 | 0.754 | 0.749 | 1.277 | 0.946 | 0.650 |
 
-**Interpretation: TBD after running the benchmark.** The final text will explicitly state whether the scaffold split degrades performance, whether the GNN improves over the Random Forest, and whether any difference is large enough to matter relative to run-to-run variation.
+**Interpretation.** Both models performed worse under the Bemis-Murcko scaffold split than under the random split, consistent with scaffold splitting providing a more difficult out-of-scaffold generalization setting. The Random Forest achieved lower test error than the small GNN on both splits. On the random split, RF RMSE was 0.984 versus 1.110 for the GNN; on the scaffold split, RMSE was 1.264 versus 1.277.
+
+The performance gap between the two models became much smaller under scaffold splitting. More importantly, neither representation avoided the degradation associated with holding out scaffold families. These comparisons describe this fixed benchmark run and should not be interpreted as a statistical significance test or as evidence that one model class is universally superior.
 
 ## Figure
 
-The final report will include a test-set parity plot, with random and scaffold results generated from saved predictions.
+Test-set parity plots were generated from the saved predictions for both random and scaffold splits.
 
 ![Regression parity plot](results/figures/parity_scaffold.png)
 
-Figure status: **generated by `scripts/make_report.py` after real model predictions exist.** Synthetic smoke-test figures are not committed as benchmark results.
+The scaffold-split parity plot provides a visual complement to the numerical metrics above. Additional random-split, residual, applicability-domain, learning-curve, and failure-analysis figures are available under `results/figures/`.
 
 ## Error analysis
 
-`src/evaluate.py`, `src/plots.py`, and `scripts/make_report.py` implement the post-training analysis from saved artifacts. Report generation does not retrain either model. It produces:
+`src/evaluate.py`, `src/plots.py`, and `scripts/make_report.py` implement post-training analysis from saved artifacts. Report generation does not retrain either model. It produces:
 
 - parity plots for random and scaffold test sets
 - signed residual-versus-observed plots for both splits
@@ -160,17 +168,11 @@ The applicability-domain view is intentionally modest: nearest-neighbor Tanimoto
 
 ## What failed
 
-**TBD after experiments.** This section will not be deleted if results are inconvenient.
+The small GNN did not outperform the fingerprint-plus-descriptor Random Forest in this benchmark. Its random-split performance was notably weaker, while scaffold-split performance was similar but still slightly worse.
 
-Examples of acceptable findings include:
+Both models also showed substantial degradation from random to scaffold evaluation. Random Forest RMSE increased from 0.984 to 1.264, while GNN RMSE increased from 1.110 to 1.277. This demonstrates why conclusions based only on a random molecular split can give a more optimistic view of generalization than a scaffold-held-out evaluation.
 
-- the Random Forest outperforming the GNN
-- the GNN overfitting on the random split
-- a large performance drop on scaffold split
-- weak performance for low-similarity test molecules
-- little benefit from adding graph depth or descriptor features
-
-Negative or mediocre results are part of the benchmark and will be reported directly.
+Increasing model complexity was therefore not sufficient to outperform a strong classical molecular representation in this experiment. This negative result is retained deliberately: the purpose of the benchmark is to compare modeling choices transparently rather than construct a narrative in which the GNN must win.
 
 ## Limitations
 
@@ -267,15 +269,17 @@ The report command requires all four saved prediction files (`baseline_random.cs
 - `results/tables/applicability_summary.csv`
 - `results/tables/failure_cases.csv`
 - parity, residual, applicability, failure-molecule, and optional learning-curve figures under `results/figures/`
-- `results/report.md`, a compact generated report for review before copying final numbers into this README
+- `results/report.md`, a compact generated report for review
 
 Run tests:
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
-Raw datasets, model checkpoints, virtual environments, and caches are excluded by `.gitignore`. Small result tables and figures from the **full benchmark run** are intended to be committed so a reviewer can inspect the evidence without retraining first. Demo/subset outputs should stay uncommitted.
+The reference environment passes **30 tests**. RDKit may emit deprecation warnings under the pinned compatibility environment; these warnings do not indicate test failures.
+
+Raw datasets, model checkpoints, virtual environments, and caches are excluded by `.gitignore`. Small result tables and figures from the full benchmark run are intended to be committed so a reviewer can inspect the evidence without retraining first. Demo/subset outputs should stay uncommitted.
 
 ## Repository layout
 

@@ -1,0 +1,3 @@
+model,representation,split_method,n_train,n_val,n_test,val_rmse,val_mae,val_r2,test_rmse,test_mae,test_r2,best_n_estimators,best_max_depth,best_max_features,best_min_samples_leaf
+Random Forest,Morgan + RDKit descriptors,random,7376,922,922,0.989310594096573,0.6625364383203862,0.8124188246829678,0.9836947726597475,0.66441398784115,0.802660790882167,300,,0.25,2
+Random Forest,Morgan + RDKit descriptors,scaffold,7376,922,922,1.22950012737989,0.9006859310334536,0.7128822550310298,1.2636249572187421,0.9003514560803019,0.6573514755501886,300,,0.25,2
